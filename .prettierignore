@@ -7,3 +7,6 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Supabase email templates are pasted verbatim into the dashboard
+/supabase/templates/
