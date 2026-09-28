@@ -16,7 +16,7 @@ Friendship is symmetric. Storing it as two directed rows risks the rows drifting
 
 Writers insert `(least(x, y), greatest(x, y))`. `accept_invite` uses `on conflict do nothing`, so accepting a second invite from an existing friend is a no-op.
 
-Readers use `public.is_friend(a, b)` for membership tests and a `union all` over both columns to list a user's friends.
+Readers use `private.is_friend(other)` (current user vs `other`) in policies and check both columns when listing a user's friends.
 
 ## Consequences
 

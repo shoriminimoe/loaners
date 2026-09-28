@@ -24,7 +24,7 @@ Supabase exposes tables through PostgREST, so any rule not in the database can b
   - First statement resolves `auth.uid()` and raises if null.
   - Rule violations raise with SQLSTATE `P0001` and a stable, human-readable message; tests assert on the message.
   - `execute` revoked from `public` and `anon`, granted to `authenticated`.
-- **`public.is_friend(a, b)`** is a `security definer`, `stable` SQL helper used inside policies, so a policy on one table does not trigger RLS on `friendships` recursively.
+- **`private.is_friend(other)`** is a `security definer`, `stable` SQL helper that tests whether the current user and `other` are friends. Policies use it so a policy on one table does not trigger RLS on `friendships` recursively. It lives in the `private` schema, which PostgREST does not expose, and only compares against `auth.uid()`, so clients cannot probe friendships between other users.
 - `search_friend_items` is `security definer` because availability depends on `loans`, which friends cannot read. It filters to the caller's friends explicitly and returns only item fields, owner display name and an `available` boolean.
 
 ## Consequences
