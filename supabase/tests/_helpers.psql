@@ -1,0 +1,66 @@
+-- Shared test helpers. Included by each test file with \ir inside its
+-- transaction, so everything here is rolled back with the test.
+--
+-- Fixed ids keep assertions readable:
+--   alice 0000…0a1  bob 0000…0b0  carol 0000…0c0 (carol is nobody's friend)
+
+create extension if not exists pgtap with schema extensions;
+
+create schema tests;
+grant usage on schema tests to anon, authenticated;
+
+create function tests.create_user(p_id uuid, p_email text, p_name text)
+returns uuid
+language plpgsql
+as $$
+begin
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+    email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values (p_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+    p_email, '', now(), '{}', '{}', now(), now());
+  update public.profiles set display_name = p_name where id = p_id;
+  return p_id;
+end;
+$$;
+
+-- Act as the given user for the rest of the transaction.
+create function tests.login_as(p_id uuid)
+returns void
+language plpgsql
+as $$
+begin
+  perform set_config('role', 'authenticated', true);
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', p_id, 'role', 'authenticated')::text, true);
+end;
+$$;
+
+create function tests.login_as_anon()
+returns void
+language plpgsql
+as $$
+begin
+  perform set_config('role', 'anon', true);
+  perform set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+end;
+$$;
+
+grant execute on all functions in schema tests to anon, authenticated;
+
+-- Users and a friendship between alice and bob.
+select tests.create_user('00000000-0000-0000-0000-0000000000a1', 'alice@test.local', 'Alice');
+select tests.create_user('00000000-0000-0000-0000-0000000000b0', 'bob@test.local', 'Bob');
+select tests.create_user('00000000-0000-0000-0000-0000000000c0', 'carol@test.local', 'Carol');
+
+insert into public.friendships (user_a, user_b)
+values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b0');
+
+-- Items: alice owns a1*, bob owns b*, carol owns c*.
+insert into public.items (id, owner_id, name, note, visibility, archived_at) values
+  ('00000000-0000-0000-0001-0000000000a1', '00000000-0000-0000-0000-0000000000a1', 'Coleman 4-person tent', 'Dome tent, includes footprint', 'friends', null),
+  ('00000000-0000-0000-0001-0000000000a2', '00000000-0000-0000-0000-0000000000a1', 'Diary', 'Private journal', 'private', null),
+  ('00000000-0000-0000-0001-0000000000a3', '00000000-0000-0000-0000-0000000000a1', 'Old camp stove', null, 'friends', now()),
+  ('00000000-0000-0000-0001-0000000000b1', '00000000-0000-0000-0000-0000000000b0', 'Zelda: Breath of the Wild', 'Switch cartridge', 'friends', null),
+  ('00000000-0000-0000-0001-0000000000b2', '00000000-0000-0000-0000-0000000000b0', 'Dune', 'Frank Herbert paperback', 'friends', null),
+  ('00000000-0000-0000-0001-0000000000b3', '00000000-0000-0000-0000-0000000000b0', 'Sleeping bag', 'Rated to -5C', 'private', null),
+  ('00000000-0000-0000-0001-0000000000c1', '00000000-0000-0000-0000-0000000000c0', 'Carol''s kayak', null, 'friends', null);
