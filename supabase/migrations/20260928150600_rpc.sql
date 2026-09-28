@@ -300,8 +300,8 @@ $$;
 
 -- Visible, non-archived items owned by the caller's friends. Security definer
 -- because availability depends on loans, which friends cannot read.
--- Ranked by trigram word similarity of the query against name and note;
--- an empty query returns everything ordered by name.
+-- Ranked by trigram word similarity of the query against name and note,
+-- with name weighted double; an empty query returns everything by name.
 create function public.search_friend_items(query text default '')
 returns table (
   id uuid,
@@ -331,10 +331,10 @@ as $$
       i.*,
       case
         when q.term = '' then 0::real
-        else greatest(
-          extensions.word_similarity(q.term, i.name),
-          coalesce(extensions.word_similarity(q.term, i.note), 0)
-        )
+        else (
+          2 * extensions.word_similarity(q.term, i.name)
+          + coalesce(extensions.word_similarity(q.term, i.note), 0)
+        ) / 3
       end as rank,
       q.term
     from public.items i
