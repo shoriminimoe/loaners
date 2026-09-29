@@ -35,6 +35,7 @@ Before committing: `npm run db:test`, `npm run check`, `npm run lint`, `npm run 
 - Internal links use `resolve()` from `$app/paths` (ESLint enforces it).
 - No UI component libraries or state management libraries. Plain Tailwind; shared classes (`input`, `btn`, `btn-primary`, `card`, `section-title`) are in `src/routes/layout.css`.
 - Small, focused commits with imperative subject lines.
+- **Never push directly to `main`.** Work on a branch and open a pull request.
 - Never commit secrets. Env vars are documented in `.env.example`; `.env.local` is gitignored.
 
 ## Layout
