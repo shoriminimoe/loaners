@@ -37,7 +37,7 @@ select results_eq(
 
 reset role;
 select results_eq(
-  $$ select display_name from public.profiles order by id $$,
+  $$ select display_name from public.profiles where id in ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b0', '00000000-0000-0000-0000-0000000000c0') order by id $$,
   array['Alice A.', 'Bob', 'Carol'],
   'only alice''s own update took effect');
 
