@@ -111,6 +111,7 @@ port = 54324
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+
 [storage]
 enabled = false
 # The maximum file size allowed (e.g. "5MB", "500KB").
@@ -241,15 +242,6 @@ otp_expiry = 3600
 # pass = "env(SENDGRID_API_KEY)"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
-
-# Magic link and signup emails link to /auth/confirm with a token hash (see README).
-[auth.email.template.magic_link]
-subject = "Your Loaners sign-in link"
-content_path = "./supabase/templates/magic_link.html"
-
-[auth.email.template.confirmation]
-subject = "Confirm your Loaners account"
-content_path = "./supabase/templates/confirmation.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

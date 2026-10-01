@@ -81,13 +81,9 @@ Then configure Auth in the dashboard:
   - `https://<your-production-domain>/**`
   - `https://*-<vercel-team-slug>.vercel.app/**` (preview deployments)
 
-**Authentication → Emails → Templates.** In both **Confirm signup** and **Magic Link**, replace the link with:
+The default email templates work as-is. Their link goes through Supabase's `/auth/v1/verify`, which redirects to `<origin>/auth/confirm?code=…`; the app exchanges the code for a session (PKCE). The app sets the redirect to the origin the user signed in from, so links work on production and preview domains. If a domain is missing from the redirect list, Supabase falls back to the Site URL; the app forwards that to `/auth/confirm` too.
 
-```html
-<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Sign in to Loaners</a>
-```
-
-The copies in `supabase/templates/` are what local Supabase uses. The app sets `RedirectTo` to `<origin>/auth/confirm`, so links work on production and preview domains, and in a different browser than the one that asked for the link. If a domain is missing from the redirect list, Supabase falls back to the Site URL; the app forwards that to `/auth/confirm` too.
+**Open the sign-in link in the same browser that requested it.** The PKCE verifier is a cookie in that browser. To support other browsers, configure custom SMTP (Supabase only allows template edits then) and change the **Confirm signup** and **Magic Link** links to `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email`; `/auth/confirm` handles both.
 
 **Authentication → Sign In / Providers → Email**: enabled, "Confirm email" on.
 
@@ -118,5 +114,5 @@ Never edit a migration that has already been pushed to the remote project; add a
 
 ## Troubleshooting
 
-- **"That sign-in link is invalid or expired"**: links are single-use and expire after an hour. Some email security scanners open links before you do; request a new one.
+- **"That sign-in link is invalid or expired"**: links are single-use, expire after an hour, and must be opened in the browser that requested them. Some email security scanners open links before you do; request a new one.
 - **Magic link email never arrives in production**: see the email delivery note above, and check **Authentication → Logs**.

@@ -52,7 +52,7 @@ src/
   routes/
     +page.*                dashboard: requests, loans
     login/ welcome/        magic link sign-in, first-login display name
-    auth/confirm/          verifies email token hash, sets session
+    auth/confirm/          exchanges the email link's PKCE code (or token hash) for a session
     auth/signout/
     items/                 own catalog
     search/                friends' items, request
@@ -60,9 +60,8 @@ src/
     invite/[code]/         accept invite
 static/                    manifest.webmanifest, icons
 supabase/
-  config.toml              local stack config (auth URLs, email templates)
+  config.toml              local stack config (auth URLs; default email templates, like hosted)
   migrations/              schema, RLS, RPC
-  templates/               magic link / confirmation email templates
   tests/                   pgTAP
   seed.sql                 local-only seed (alice@example.com, bob@example.com)
 ```

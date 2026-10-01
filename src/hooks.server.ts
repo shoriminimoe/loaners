@@ -37,7 +37,9 @@ const guard: Handle = async ({ event, resolve }) => {
 	const { pathname, search, searchParams } = event.url;
 
 	// If the email link fell back to the Site URL, forward it to the confirm route.
-	if (searchParams.has('token_hash') && pathname !== '/auth/confirm') {
+	const fromEmail =
+		searchParams.has('token_hash') || (pathname === '/' && searchParams.has('code'));
+	if (fromEmail && pathname !== '/auth/confirm') {
 		redirect(303, `/auth/confirm${search}`);
 	}
 
